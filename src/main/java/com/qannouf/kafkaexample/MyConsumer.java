@@ -1,35 +1,18 @@
 package com.qannouf.kafkaexample;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 
-import javax.swing.text.FieldView;
-
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -38,6 +21,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class MyConsumer {
     private static Scanner in;
@@ -111,7 +95,7 @@ public class MyConsumer {
         private void sendMessageToEndPoint(JsonNode json) {
 
             String url = "";
-            String message = "";
+            String action = "";
             String client_id = "";
             
             Iterator<String> fieldNames = json.fieldNames();
@@ -121,15 +105,17 @@ public class MyConsumer {
                     JsonNode fieldValue = json.get(fieldName);
                     url = fieldValue.asText();
                 }
-                if (fieldName.equals("message")) {
+                if (fieldName.equals("action")) {
                     JsonNode fieldValue = json.get(fieldName);
-                    message = fieldValue.asText();
+                    action = fieldValue.asText();
                 }
                 if (fieldName.equals("client_id")) {
                     JsonNode fieldValue = json.get(fieldName);
                     client_id = fieldValue.asText();
                 }
             }
+            
+            ((ObjectNode)json).put("response", "YES");
             
             sendPostRequest(url, json);
             
@@ -139,9 +125,12 @@ public class MyConsumer {
     		CloseableHttpClient httpclient = HttpClients.createDefault();
     		HttpPost httppost = new HttpPost(url);
     		String responseString = "";
+    		String jsonText = jsonNode.toString();
     		try {
-    			StringEntity entity = new StringEntity(jsonNode.asText());
-    			httppost.setEntity(entity);
+    			StringEntity requestEntity = new StringEntity(
+    				    jsonText,
+    				    ContentType.APPLICATION_JSON);
+    			httppost.setEntity(requestEntity);
     			CloseableHttpResponse response = httpclient.execute(httppost);
     			HttpEntity entity2 = response.getEntity();
     			responseString = EntityUtils.toString(entity2, "UTF-8");
@@ -151,6 +140,7 @@ public class MyConsumer {
     			// TODO Auto-generated catch block
     			e.printStackTrace();
     		}
+    		System.err.println("MyConsumer.sendPostRequest done");
     		return responseString;
     	}
         
