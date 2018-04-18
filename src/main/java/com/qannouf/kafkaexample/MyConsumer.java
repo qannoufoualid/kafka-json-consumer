@@ -62,7 +62,7 @@ public class MyConsumer {
         }
         public void run() {
             Properties configProperties = new Properties();
-            configProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9093");
+            configProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
             configProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
             configProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.connect.json.JsonDeserializer");
             configProperties.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
@@ -115,7 +115,7 @@ public class MyConsumer {
                 }
             }
             
-            ((ObjectNode)json).put("response", "YES");
+            ((ObjectNode)json).put("response", "Your List of Employees is : Vincent, Walid, Jofrey, Antoine");
             
             sendPostRequest(url, json);
             
